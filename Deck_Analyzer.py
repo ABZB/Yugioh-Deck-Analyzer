@@ -14,6 +14,45 @@ import networkx as nx
 from collections import Counter
 
 
+def	update_cdbs():
+	#grab paths from text file
+	pathways = []
+	with open("paths.txt") as f:
+		pathways = f.readlines()
+		f.close()
+	cdb_path = pathways[0].strip() + "/"
+
+	
+	#path for main .cdb_path
+	directories_list = [cdb_path]
+	
+	#pathway to .cdb expansion folder
+	cdb_path = cdb_path.strip() + "expansions/" #pathway to .cdb folder
+	
+	directories_list.append(cdb_path)
+	
+	#Adds in subfolders of expansions if there are.
+	#if ygopro_version_check != "is_ygopro2 = true":
+	#If they add new subfolders, update this list. Update to just grab list of subfolders of expansions at some point.
+	temp_dir = ["live//","live2016//","live2017//","liveanime//","live2017links//","liveanimelinks//"]
+	
+	for i in temp_dir:
+		directories_list.append(cdb_path + i)
+		
+	#get current directory
+	current_directory = os.getcwd() + '//'
+	
+	#avoids overwriting of same filename in different subfolders
+	filenumber = 0
+	
+	for j in directories_list:
+		j = j.strip()
+	
+	#copy over .cdb databases
+	for paths in directories_list:
+		for file in [doc for doc in os.listdir(paths) if doc.endswith(".cdb")]:
+			shutil.copy2(paths + os.path.basename(file), current_directory + str(filenumber) + os.path.basename(file))
+			filenumber += 1
 
 def get_card_type(c, t):
 	c.execute("SELECT type FROM datas WHERE id=?", t)
@@ -126,22 +165,19 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 	
 	#removes .ydk extension from deck's file's name
 	end_name = end_name.replace(".ydk","")
-	#opens tk GUI...
-	root = tk.Tk()
-	root.withdraw()
 	
 	# if running a decklist
 	if(which_program == "convert_ydk_to_txt"):
 	
 
 		#gets/creates filename as per (text file, opening window in output path specified in paths.txt file, default extension of .txt, with default name being the name of the deck file)
-		file_name = x(initialdir = out_path,  defaultextension = ".txt", initialfile = end_name)
+		file_name = asksaveasfilename(initialdir = out_path,  defaultextension = ".txt", initialfile = end_name)
 		
 		#totals for Main and Extra Decks
 		total_monsters = deck_counter[0] + deck_counter[1] + deck_counter[2]
 		total_spells = deck_counter[3] + deck_counter[4] + deck_counter[5] + deck_counter[6] + deck_counter[7]
 		total_traps = deck_counter[8] + deck_counter[9] + deck_counter[10]
-		total_main_deck = total_monsters+total_spells+total_traps
+		total_main_deck = total_monsters + total_spells + total_traps
 		total_extra = deck_counter[11] + deck_counter[12] + deck_counter[13] + deck_counter[14]
 		
 		#totals for Side Deck
@@ -247,7 +283,7 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 			d.write("\n")
 			d.write("\n")
 			
-			d.write('Basic Deck Probabilities:' + '\n' + '\n')
+			d.write('Basic Deck Analysis:' + '\n' + '\n')
 			#d.write('Probability of 0 Level 4 or lower Monsters in your first hand if you go first: ' + str(round(P0L4L5*100,2)) + '% / second: ' + str(round(P0L4L6*100,2)) + '%\n')
 			#d.write('Probability of at least 1 Level 4 or lower Monsters in your first hand if you go first: ' + str(round(PaL1L4L5*100,2)) + '% / second: ' + str(round(PaL1L4L6*100,2)) + '%\n' + '\n')
 			
@@ -267,7 +303,6 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 			#writes full report
 			if(len(additional_lines) > 0):
 				d.write('\n' + '\n')
-				d.write('Live/Dead Hand Analysis:' + '\n')
 				
 				for lines in additional_lines:
 					d.write('\n')
@@ -361,23 +396,19 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 
 def extract(which_program, additional_lines = []):
 
+	update_cdbs()
+
 	#path for pulling .cdb files
 	pathways = []
 	with open("paths.txt") as f:
 		pathways = f.readlines()
 		f.close()
 		
-	cdb_path = pathways[0]
-	cdb_path = cdb_path.strip()
-	output_path = pathways[1]
+	output_path = pathways[1].strip()
 	
-	deck_path = cdb_path + "deck/" #pathway to deck folder
-	output_path = output_path.strip()
+	deck_path = pathways[0].strip() + "/deck/" #pathway to deck folder
 	
-	#invoke tkinter GUI
-	root = tk.Tk()
-	#hides tkinter background window
-	root.withdraw()
+	
 	#opens open file dialogue, default directory is the /deck folder from your specified YgoPro directory
 	deck_name = askopenfilename(filetypes = (("YgoPro Deck Files", "*.ydk"), ("All Files", "*.*")), initialdir = deck_path)
 	
@@ -395,6 +426,7 @@ def extract(which_program, additional_lines = []):
 		
 		
 	copied_cdb_path = os.getcwd() + "/"
+	
 	#[Monsters 7+, Monsters 5-6, Monsters 1-4, Normal Spells, Quick-Play Spells, Equip Spells, Continuous Spells, Field Spells, Normal Traps, Continuous Traps, Counter Traps, Fusion, Synchro, XYZ, Link] whitespace in array in next line seperates between monster/spell/trap/extra groupings
 	deck_counter = [0,0,0, 0,0,0,0,0, 0,0,0, 0,0,0,0]
 	#remembers if a particular card has been already read (some cards appear in more than 1 database)
@@ -455,7 +487,7 @@ def extract(which_program, additional_lines = []):
 							if count_only_once[i] == 0:
 								count_only_once[i] = 1
 						
-			data_number += 1
+				data_number += 1
 	
 	elif(which_program == 'create_decsv' or which_program == 'create_daacsv'):
 		#iterarates through every .cdb file in directory. Will fail if program is in different folder than the .cdb files.
@@ -518,49 +550,6 @@ def extract(which_program, additional_lines = []):
 						
 	#opens save file dialogue with name of deck as default
 	save_deck_text(temp_array, os.path.basename(deck_name), output_path, deck_counter, side_deck_counter, which_program, additional_lines)
-
-def	update_cdbs():
-	#grab paths from text file
-	pathways = []
-	with open("paths.txt") as f:
-		pathways = f.readlines()
-		f.close()
-	cdb_path = pathways[0]
-	cdb_path = cdb_path.strip()
-	
-	ygopro_version_check = pathways[4]
-	ygopro_version_check = ygopro_version_check.strip()
-
-	#path for main .cdb_path
-	directories_list = [cdb_path]
-	
-	#pathway to .cdb expansion folder
-	cdb_path = cdb_path.strip() + "expansions/" #pathway to .cdb folder
-	
-	directories_list.append(cdb_path)
-
-	#Adds in subfolders of expansions if there are.
-	if ygopro_version_check != "is_ygopro2 = true":
-	#If they add new subfolders, update this list. Update to just grab list of subfolders of expansions at some point.
-		temp_dir = ["live//","live2016//","live2017//","liveanime//","live2017links//","liveanimelinks//"]
-		
-		for i in temp_dir:
-			directories_list.append(cdb_path + i)
-
-	#get current directory
-	current_directory = os.getcwd() + '//'
-
-	#avoids overwriting of same filename in different subfolders
-	filenumber = 0
-	
-	for j in directories_list:
-		j = j.strip()
-	
-	#copy over .cdb databases
-	for paths in directories_list:
-		for file in [doc for doc in os.listdir(paths) if doc.endswith(".cdb")]:
-			shutil.copy2(paths + os.path.basename(file), current_directory + str(filenumber) + os.path.basename(file))
-			filenumber += 1
 
 #writes selected CSV file to 2D array, also passes up path name if needed
 def read_csv(what_file, default_path, also_tell_path = False):
@@ -823,10 +812,15 @@ def analyze_adj_arr():
 	
 	count_disconnected, two_vertices_connected, three_vertices_connected, three_vertices_connected_2_edges, three_vertices_connected_3_edges, pair_two_vertices_connected, four_vertices_connected, four_vertices_connected_3_edges, four_vertices_connected_4_edges, four_vertices_connected_5_edges, four_vertices_connected_6_edges, two_and_three_vertices_connected, two_and_three_vertices_connected_3_edges, two_and_three_vertices_connected_4_edges, five_vertices_connected, five_vertices_connected_4_edges, five_vertices_connected_5_edges, five_vertices_connected_6_edges, five_vertices_connected_7_edges, five_vertices_connected_8_edges, five_vertices_connected_9_edges, five_vertices_connected_10_edges = count_connected_subgraphs(adj_arr)
 	
+	# should be size of deck choose five
+	number_of_hands = count_disconnected + two_vertices_connected + three_vertices_connected + four_vertices_connected + five_vertices_connected + pair_two_vertices_connected + two_and_three_vertices_connected
 	
 	
 	report = []
-	report.append('Deck properties as follows:')
+	report.append('Advanced Deck Analysis:')
+	
+	report.append('Your deck has: ' + str(number_of_hands) + ' possible hands (counting hands that are the same but with different copies of the same card)')
+	
 	#only one way for these to happen
 	report.append('There are: ' + str(count_disconnected) + ' brick hands.')
 	report.append('There are: ' + str(two_vertices_connected) + ' hands with exactly two live cards.')
@@ -841,6 +835,35 @@ def analyze_adj_arr():
 	report.append('There are: ' + str(four_vertices_connected) + ' hands with four live cards. Of them, ' + str(four_vertices_connected_6_edges) + ' are all synergetic with one another, ' + str(four_vertices_connected_5_edges) + ' have one pair not so, ' + str(four_vertices_connected_4_edges) + ' have two pairs not so, and ' + str(four_vertices_connected_3_edges) + ' have three pairs not so')
 	
 	report.append('There are: ' + str(five_vertices_connected) + ' hands with five live cards. Of them, ' + str(five_vertices_connected_10_edges) + ' are all synergetic with one another, ' + str(five_vertices_connected_9_edges) + ' have one pair not so, ' + str(five_vertices_connected_8_edges) + ' have two pairs not so, ' + str(five_vertices_connected_7_edges) + ' have three pairs not so, ' + str(five_vertices_connected_6_edges) + ' have four pairs not so, ' + str(five_vertices_connected_5_edges) + ' have five pairs not so, and ' + str(five_vertices_connected_4_edges) + ' have six pairs not so.')
+	
+	#brick calculations
+	
+	
+	#bricking exactly once
+	brick_one_duel = count_disconnected / number_of_hands
+	
+	
+	#not-bricking exactly twice
+	no_brick_2_duels = ((1 - brick_one_duel))**2
+	
+	#bricking at least in two trials
+	brick_2_duels_al1 = 1 - no_brick_2_duels	
+	
+	#not-bricking exactly three times
+	no_brick_3_duels = ((1 - brick_one_duel))**3
+	
+	#bricking at least once in three trials
+	brick_3_duels_al1 = 1 - no_brick_3_duels
+	
+	report.append('\n')
+	
+	report.append('The probability of bricking in one duel is: ' + str(round(100*brick_one_duel,1)) + '%')
+	report.append('The probability of not bricking in any of two duels is: ' + str(round(100*no_brick_2_duels,1)) + '%')
+	report.append('The probability of bricking in at least one of two duels is: ' + str(round(100*brick_2_duels_al1,1)) + '%')
+	report.append('The probability of not bricking in any three duels is: ' + str(round(100*no_brick_3_duels,1)) + '%')
+	report.append('The probability of bricking in at least one of three duels is: ' + str(round(100*brick_3_duels_al1,1)) + '%')
+	
+	
 	return report
 
 def create_deck_graph():
@@ -917,10 +940,9 @@ def analyze_and_display():
 	for line in report:
 		words_report += line + '\n' 
 	root = tk.Tk()
-	T = Text(root, height=500, width=500)
-	T.grid()
-	T.insert(END, words_report)
-	mainloop()
+	T = tk.Text(root, height=500, width=500)
+	T.pack()
+	T.insert(1.0, words_report)
 
 def data_entry_refresh_warning():
 	
@@ -1002,15 +1024,13 @@ def button_prompt_main_menu():
 
 	tk.Button(frame_main_menu, text = 'Write Analysis and Deck List to file', command = lambda: extract('convert_ydk_to_txt', analyze_adj_arr()), height = 2, width = 50, pady = 1).pack()
 
-	#Doesn't work quite right when compiled, and writing to file works well enough
-	#tk.Button(frame_main_menu, text = 'Analyse Deck and Display Results', command = analyze_adj_arr, height = 2, width = 50, pady = 1).pack()
+	tk.Button(frame_main_menu, text = 'Analyse Deck and Display Results', command = analyze_and_display, height = 2, width = 50, pady = 1).pack()
 
 	tk.Button(frame_main_menu, text = 'Display Deck Network', command = deck_grapher, height = 2, width = 50, pady = 1).pack()
 
 	tk.Button(frame_main_menu, text = 'Create/Refresh Deck Array from .ydk', command = lambda: extract("create_daacsv"), height = 2, width = 50, pady = 1).pack()
 
 	tk.Button(frame_main_menu, text = 'Create/Refresh data-entry form from .ydk', command = data_entry_refresh_warning, height = 2, width = 50, pady = 1).pack()
-	
 	
 	directory_select = tk.Menubutton(frame_main_menu, text = 'Select Directories', height = 2, width = 50, pady = 1)
 	
