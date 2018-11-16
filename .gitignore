@@ -1,7 +1,5 @@
-*.pyc
 *.toc
 *.htm
-*.pyo
 *.zip
 *.pkg
 *.spec
@@ -9,3 +7,5 @@
 *.manifest
 *.pyz
 build/Deck_Analyzer/warn-Deck_Analyzer.txt
+*.pyc
+*.pyo
