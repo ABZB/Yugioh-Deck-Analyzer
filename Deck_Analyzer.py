@@ -34,13 +34,13 @@ def	update_cdbs():
 	#Adds in subfolders of expansions if there are.
 	#if ygopro_version_check != "is_ygopro2 = true":
 	#If they add new subfolders, update this list. Update to just grab list of subfolders of expansions at some point.
-	temp_dir = ["live//","live2016//","live2017//","liveanime//","live2017links//","liveanimelinks//"]
+	temp_dir = ["live/","live2016/","live2017/","liveanime/","live2017links/","liveanimelinks/"]
 	
 	for i in temp_dir:
 		directories_list.append(cdb_path + i)
 		
 	#get current directory
-	current_directory = os.getcwd() + '//'
+	current_directory = os.getcwd() + "/"
 	
 	#avoids overwriting of same filename in different subfolders
 	filenumber = 0
