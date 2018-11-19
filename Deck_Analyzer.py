@@ -415,8 +415,6 @@ def extract(which_program, additional_lines = []):
 	#array to store found card names while iterating through databases
 	temp_array = []
 	
-	#check in order to create array in first run, then overwrite as needed in subsequent iterations.
-	data_number = 0
 	
 	#open .ydk file
 	with open(deck_name) as f:
@@ -429,16 +427,16 @@ def extract(which_program, additional_lines = []):
 	
 	#[Monsters 7+, Monsters 5-6, Monsters 1-4, Normal Spells, Quick-Play Spells, Equip Spells, Continuous Spells, Field Spells, Normal Traps, Continuous Traps, Counter Traps, Fusion, Synchro, XYZ, Link] whitespace in array in next line seperates between monster/spell/trap/extra groupings
 	deck_counter = [0,0,0, 0,0,0,0,0, 0,0,0, 0,0,0,0]
-	#remembers if a particular card has been already read (some cards appear in more than 1 database)
-	count_only_once = []
+	
 	#switches between main/extra and side deck
-	in_side_deck = 0
+	in_side_deck = False
 	#cards in side deck
 	side_deck_counter = [0,0,0, 0,0,0,0,0, 0,0,0, 0,0,0,0]
 	
 	if(which_program == 'convert_ydk_to_txt'):
+		counted_this_card_name = []
 		#iterarates through every .cdb file in directory. Will fail if program is in different folder than the .cdb files.
-		for file in [doc for doc in os.listdir(copied_cdb_path) if doc.endswith(".cdb")]:
+		for data_number, file in enumerate([doc for doc in os.listdir(copied_cdb_path) if doc.endswith(".cdb")]):
 			con = sqlite3.connect(file)
 			with con:
 				c = con.cursor()
@@ -450,9 +448,9 @@ def extract(which_program, additional_lines = []):
 					
 					#switches between deck and side deck
 					if deck_list_temp[i] == '!side':
-						in_side_deck = 1
-					elif deck_list_temp[i] == '#main':
-						in_side_deck = 0
+						in_side_deck = True
+					elif(deck_list_temp[i] == '#main' or deck_list_temp[i] == '#extra'):
+						in_side_deck = False
 					
 					#put id number in a format to be parsed by sql
 					t = (deck_list_temp[i],)
@@ -464,9 +462,9 @@ def extract(which_program, additional_lines = []):
 					#if the current .cdb does not have current card id...
 					if cardname is None:
 						#if this is the first .cdb, append the card id number as a placeholder
-						if data_number == 0:
+						if(data_number == 0):
 							temp_array.append(deck_list_temp[i])
-							count_only_once.append(0)
+							counted_this_card_name.append(False)
 					#if card id is found
 					else:
 						#remove the extra characters picked up from SQlite
@@ -477,21 +475,28 @@ def extract(which_program, additional_lines = []):
 						cardname = cardname.replace('("',"")
 						cardname = cardname.strip()
 						#if this is the first .cdb, append card name
-						if data_number == 0:
+						if(data_number == 0):
 							temp_array.append(cardname)
-							deck_counter = card_type_to_array(c, t, deck_counter)
-							count_only_once.append(1)
+							#append False, set it to true after we do the deck counter, otherwise we'd have to have that whole thing twice
+							counted_this_card_name.append(False)
 						#otherwise overwrite card id with card name in the array
 						else:
 							temp_array[i] = cardname
-							if count_only_once[i] == 0:
-								count_only_once[i] = 1
 						
-				data_number += 1
+						#in either case, if we haven't counted this card before, count the card type to the appropriate counter array:
+						if(not(counted_this_card_name[i])):
+							if(in_side_deck):
+								side_deck_counter = card_type_to_array(c, t, side_deck_counter)
+							else:
+								deck_counter = card_type_to_array(c, t, deck_counter)
+							
+						#now that we've found this card once, ensure that we will not count it again:
+						counted_this_card_name[i] = True
 	
 	elif(which_program == 'create_decsv' or which_program == 'create_daacsv'):
 		#iterarates through every .cdb file in directory. Will fail if program is in different folder than the .cdb files.
-		
+		#remembers if a particular card has been already read (some cards appear in more than 1 database)
+		count_only_once = []
 		for file in [doc for doc in os.listdir(copied_cdb_path) if doc.endswith(".cdb")]:
 			con = sqlite3.connect(file)
 			with con:
