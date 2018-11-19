@@ -495,9 +495,7 @@ def extract(which_program, additional_lines = []):
 	
 	elif(which_program == 'create_decsv' or which_program == 'create_daacsv'):
 		#iterarates through every .cdb file in directory. Will fail if program is in different folder than the .cdb files.
-		#remembers if a particular card has been already read (some cards appear in more than 1 database)
-		count_only_once = []
-		for file in [doc for doc in os.listdir(copied_cdb_path) if doc.endswith(".cdb")]:
+		for data_number, file in enumerate([doc for doc in os.listdir(copied_cdb_path) if doc.endswith(".cdb")]):
 			con = sqlite3.connect(file)
 			with con:
 				c = con.cursor()
@@ -508,7 +506,7 @@ def extract(which_program, additional_lines = []):
 						deck_list_temp[i] = str(deck_list_temp[i]).strip()
 					
 					#stops checking after it finishes the main deck
-					if deck_list_temp[i] == '#extra':
+					if(deck_list_temp[i] == '#extra'):
 						break
 					
 					#put id number in a format to be parsed by sql
@@ -519,11 +517,10 @@ def extract(which_program, additional_lines = []):
 					cardname = c.fetchone()
 					
 					#if the current .cdb does not have current card id...
-					if cardname is None:
+					if(cardname is None):
 						#if this is the first .cdb, append the card id number as a placeholder
 						if data_number == 0:
 							temp_array.append(deck_list_temp[i])
-							count_only_once.append(0)
 					#if card id is found
 					else:
 						#remove the extra characters picked up from SQlite
@@ -534,22 +531,11 @@ def extract(which_program, additional_lines = []):
 						cardname = cardname.replace('("',"")
 						cardname = cardname.strip()
 						#if this is the first .cdb, append card name
-						if data_number == 0:
+						if(data_number == 0):
 							temp_array.append(cardname)
-							if in_side_deck == 0:
-								deck_counter = card_type_to_array(c, t, deck_counter)
-							else:
-								side_deck_counter = card_type_to_array(c, t, side_deck_counter)
-							count_only_once.append(1)
 						#otherwise overwrite card id with card name in the array
 						else:
 							temp_array[i] = cardname
-							if count_only_once[i] == 0:
-								if in_side_deck == 0:
-									deck_counter = card_type_to_array(c, t, deck_counter)
-								else:
-									side_deck_counter = card_type_to_array(c, t, side_deck_counter)
-								count_only_once[i] = 1
 						
 			data_number += 1
 						
