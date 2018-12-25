@@ -930,10 +930,11 @@ def analyze_and_display():
 	words_report = ''
 	for line in report:
 		words_report += line + '\n' 
-	root = tk.Tk()
-	T = tk.Text(root, height=500, width=500)
+	analysis_window = tk.Tk()
+	T = tk.Text(analysis_window, height=500, width=500)
 	T.pack()
 	T.insert(1.0, words_report)
+	analysis_window.mainloop()
 
 def data_entry_refresh_warning():
 	
@@ -983,25 +984,6 @@ def update_paths(folder_selection):
 	with open("paths.txt", 'w') as f:
 		for line in pathways:
 			f.write(line)
-		
-	
-def select_directories():
-	root_options_menu = tk.Tk()
-
-	frame_options_menu = tk.Frame(root_options_menu)
-	frame_options_menu.pack()
-		
-	root_options_menu.title('Select Directory to Update')
-	
-	tk.Button(frame_options_menu, text = 'Select YgoPro Folder', command = lambda: update_paths('ygopro'), height = 2, width = 50, pady = 1).pack()
-	
-	tk.Button(frame_options_menu, text = 'Select Output Folder', command = lambda: update_paths('output'), height = 2, width = 50, pady = 1).pack()
-	
-	tk.Button(frame_options_menu, text="Exit", command = root_options_menu.destroy, height = 2, width = 25, pady = 1).pack()
-	
-	root_options_menu.lift()
-	
-	root_options_menu.mainloop()
 	
 def button_prompt_main_menu():
 	root_main_menu = tk.Tk()
