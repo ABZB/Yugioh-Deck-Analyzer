@@ -1,17 +1,14 @@
-import sqlite3
-import sys
-import os
-import io
-import string
-import shutil
 import csv
+import os
+import shutil
+import sqlite3
+import tkinter as tk
+from tkinter.filedialog import askdirectory
 from tkinter.filedialog import askopenfilename
 from tkinter.filedialog import asksaveasfilename
-from tkinter.filedialog import askdirectory
-import tkinter as tk
+
 import matplotlib.pyplot as plt
 import networkx as nx
-from collections import Counter
 
 
 def	update_cdbs():
@@ -19,7 +16,6 @@ def	update_cdbs():
 	pathways = []
 	with open("paths.txt") as f:
 		pathways = f.readlines()
-		f.close()
 	cdb_path = pathways[0].strip() + "/"
 
 	
@@ -308,8 +304,6 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 					d.write('\n')
 					d.write(lines)
 			
-			d.close()
-			
 	#if running graph-node thing
 	elif(which_program == 'create_daacsv' or which_program == 'create_decsv'):
 		
@@ -345,7 +339,7 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 				writerthing = csv.writer(csvfile, delimiter = ',')
 				for line in adj_arr:
 					writerthing.writerow(line)
-				csvfile.close
+
 		
 		#Create Data-Entry CSV
 		
@@ -391,7 +385,6 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 				writerthing = csv.writer(csvfile2, delimiter = ',')
 				for line in adj_arr:
 					writerthing.writerow(line)
-				csvfile2.close
 			
 
 def extract(which_program, additional_lines = []):
@@ -402,7 +395,6 @@ def extract(which_program, additional_lines = []):
 	pathways = []
 	with open("paths.txt") as f:
 		pathways = f.readlines()
-		f.close()
 		
 	output_path = pathways[1].strip()
 	
@@ -420,7 +412,6 @@ def extract(which_program, additional_lines = []):
 	with open(deck_name) as f:
 		#read card ids from .ydk file
 		deck_list_temp = f.readlines()
-		f.close()
 		
 		
 	copied_cdb_path = os.getcwd() + "/"
@@ -575,7 +566,6 @@ def construct_data_arr():
 	pathways = []
 	with open("paths.txt") as f:
 		pathways = f.readlines()
-		f.close()
 	default_path = pathways[1]
 	
 	default_path = default_path.strip()
@@ -631,7 +621,6 @@ def construct_data_arr():
 		writerthing = csv.writer(csvfile, delimiter = ',')
 		for line in adj_arr:
 			writerthing.writerow(line)
-		csvfile.close
 	
 		
 	return(adj_arr)
@@ -955,7 +944,6 @@ def update_paths(folder_selection):
 	
 		with open("paths.txt", 'r') as f:
 			pathways = f.readlines()
-			f.close()
 			
 		if(len(pathways) >= 2):
 			if(folder_selection == 'ygopro'):
