@@ -9,3 +9,4 @@
 build/Deck_Analyzer/warn-Deck_Analyzer.txt
 *.pyc
 *.pyo
+*.exe
