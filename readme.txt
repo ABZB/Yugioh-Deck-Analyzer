@@ -5,7 +5,7 @@ Section I. Features:
 
 1) Convert .ydk to .txt:
 
-The user selects a .ydk file, it is converted into a text file listing the card names, in the order they are in in the .ydk, and organized by deck location (main, extra, side). It also lists a count of the various card types within the deck.
+The user selects a .ydk file, it is converted into a text file listing the card names, in the order they are in in the .ydk, and organized by deck location (main, extra, side). It also produces a breakdown of the various card types within the deck, and a very basic analyis of how likely one is to draw key cards.
 
 2) Write Analysis and Deck List to file
 
@@ -32,7 +32,9 @@ For example, in a Gouki deck, the row/column intersection of Gouki Twistcobra an
 
 Also, if a card, by itself, prevents a hand from being dead, then every entry should be 1. For example, under the current banlist, in many decks, Armageddon Knight has this property, as it singlehandedly allows for a massive play (and so too, ROTA is the same, for it gives one access to Armageddon Knight).
 
-7) Select Directories
+7) Radio buttons for selecting client. Currently user can choose between Project Ignis and YGOPro Percy. Defaults to Project Ignis if no selection is made. If neither option works for the user (particularly if they are using some other client, they can submit a bug report and I will try to add compatability (each client arranges its .cdbs differently, and if any are missed, some card data will not be found).
+
+8) Select Directories
 
 Opens a drop-down menu. The user must set the path to their ygopro folder in order for features 1 and 2 to work. The other option is optional.
 
@@ -40,6 +42,8 @@ Opens a drop-down menu. The user must set the path to their ygopro folder in ord
 ---
 Section II. Explanation of Analysis:
 ---
+
+WARNING: Currently has a small glitch in the math, percentages and totals given may be off by up to a few percent. I have to go through the code and find the source of the error.
 
 The program uses the user input from I.5 I.6 to check every possible opening hand (assuming one goes first, the case of going second will be address in a later version), and computes:
 
