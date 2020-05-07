@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 
-def	update_cdbs():
+def	update_cdbs(program_name):
 	#grab paths from text file
 	pathways = []
 	with open("paths.txt") as f:
@@ -23,14 +23,18 @@ def	update_cdbs():
 	directories_list = [cdb_path]
 	
 	#pathway to .cdb expansion folder
-	cdb_path = cdb_path.strip() + "expansions/" #pathway to .cdb folder
 	
-	directories_list.append(cdb_path)
-	
-	#Adds in subfolders of expansions if there are.
-	#if ygopro_version_check != "is_ygopro2 = true":
+	#Adds in subfolders of expansions if there are. Do not run if Project Ignis
 	#If they add new subfolders, update this list. Update to just grab list of subfolders of expansions at some point.
-	temp_dir = ["live/","live2016/","live2017/","liveanime/","live2017links/","liveanimelinks/"]
+	if(program_name == "ygopro_percy"):
+		#need to get /expansions and its various subfolders
+		cdb_path = cdb_path.strip() + "expansions/" #pathway to .cdb folder
+		directories_list.append(cdb_path)
+		
+		temp_dir = ["live/","live2016/","live2017/","liveanime/","live2017links/","liveanimelinks/"]
+	elif(program_name == "Project_Ignis"):
+		#just /expansions and repositories/delta/
+		temp_dir = ["repositories/delta/", "expansions/"]
 	
 	for i in temp_dir:
 		directories_list.append(cdb_path + i)
@@ -219,7 +223,17 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 
 		
 		with open(file_name, 'w') as d:
-			d.write('Deck Name: ' + end_name + '\n' + '\n')
+			d.write('Deck Name: ' + end_name + '\n')
+			#find and write the username, if any
+			for i in card_name_array:
+				if(i == "#created by ..."):
+					d.write("Anonymous" + '\n')
+				elif(i[0:12] == "#created by "):
+					d.write("Created by: " + i[12:] + '\n' + '\n')
+			
+			#space between nams and start of deck info
+			d.write('')
+					
 			d.write('Card Count:' + '\n')
 			
 			d.write(str(total_main_deck) + ' Cards in Main Deck' + '\n'+ '\n')
@@ -256,8 +270,9 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 			current_card = ''
 			
 			for i in card_name_array:
-				if i == '#created by ...':
-					i = ''
+				#skip over the username
+				if(i[0:12] == "#created by "):
+					d.write('')
 				elif i == '#main':
 					d.write("\n")
 					d.write('Main Deck:')
@@ -387,9 +402,9 @@ def save_deck_text(card_name_array, end_name, out_path, deck_counter, side_deck_
 					writerthing.writerow(line)
 			
 
-def extract(which_program, additional_lines = []):
+def extract(which_program, additional_lines = [], program_name = "Project_Ignis"):
 
-	update_cdbs()
+	update_cdbs(program_name)
 
 	#path for pulling .cdb files
 	pathways = []
@@ -925,7 +940,7 @@ def analyze_and_display():
 	T.insert(1.0, words_report)
 	analysis_window.mainloop()
 
-def data_entry_refresh_warning():
+def data_entry_refresh_warning(program_name = "Project_Ignis"):
 	
 	root_refresh_warning = tk.Tk()
 
@@ -934,7 +949,7 @@ def data_entry_refresh_warning():
 
 	
 	if(tk.messagebox.askyesno('Warning:', 'You will need to re-enter all values in the Data-Entry form if you overwrite the old one. Proceed?')):
-		extract("create_decsv")
+		extract("create_decsv", [], program_name = "Project_Ignis")
 	root_refresh_warning.mainloop()
 
 	
@@ -981,17 +996,26 @@ def button_prompt_main_menu():
 		
 	root_main_menu.title('Select a Subprogram to Run')
 
-	tk.Button(frame_main_menu, text = 'Convert .ydk to .txt', command = lambda: extract("convert_ydk_to_txt"), height = 2, width = 50, pady = 1).pack()
+	tk.Button(frame_main_menu, text = 'Convert .ydk to .txt', command = lambda: extract("convert_ydk_to_txt", [], program_name = "Project_Ignis"), height = 2, width = 50, pady = 1).pack()
 
-	tk.Button(frame_main_menu, text = 'Write Analysis and Deck List to file', command = lambda: extract('convert_ydk_to_txt', analyze_adj_arr()), height = 2, width = 50, pady = 1).pack()
+	tk.Button(frame_main_menu, text = 'Write Analysis and Deck List to file', command = lambda: extract('convert_ydk_to_txt', analyze_adj_arr(), program_name = "Project_Ignis"), height = 2, width = 50, pady = 1).pack()
 
 	tk.Button(frame_main_menu, text = 'Analyse Deck and Display Results', command = analyze_and_display, height = 2, width = 50, pady = 1).pack()
 
 	tk.Button(frame_main_menu, text = 'Display Deck Network', command = deck_grapher, height = 2, width = 50, pady = 1).pack()
 
-	tk.Button(frame_main_menu, text = 'Create/Refresh Deck Array from .ydk', command = lambda: extract("create_daacsv"), height = 2, width = 50, pady = 1).pack()
+	tk.Button(frame_main_menu, text = 'Create/Refresh Deck Array from .ydk', command = lambda: extract("create_daacsv", [], program_name = "Project_Ignis"), height = 2, width = 50, pady = 1).pack()
 
 	tk.Button(frame_main_menu, text = 'Create/Refresh data-entry form from .ydk', command = data_entry_refresh_warning, height = 2, width = 50, pady = 1).pack()
+	
+	program_name = tk.StringVar()
+	
+	#Use paths for Project Ignis
+	tk.Radiobutton(frame_main_menu, text = "Project Ignis", variable = program_name, value = "Project_Ignis").pack()
+	
+	#Use paths for Percy YGOPro
+	tk.Radiobutton(frame_main_menu, text = "YGOPro (Percy)", variable = program_name, value = "ygopro_percy").pack()
+	
 	
 	directory_select = tk.Menubutton(frame_main_menu, text = 'Select Directories', height = 2, width = 50, pady = 1)
 	
